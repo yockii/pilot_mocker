@@ -17,6 +17,12 @@ class ApiModel with ChangeNotifier {
     notifyListeners();
   }
 
+  void setAll(String url, String token) {
+    _apiUrl = url;
+    _token = token;
+    notifyListeners();
+  }
+
   void clear() {
     _apiUrl = '';
     _token = '';

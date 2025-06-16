@@ -3,7 +3,9 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:pilot_mocker/model/api.dart';
 import 'package:pilot_mocker/model/third_cloud.dart';
+import 'package:pilot_mocker/model/ws.dart';
 import 'package:provider/provider.dart';
 
 class WebViewPage extends StatefulWidget {
@@ -304,26 +306,24 @@ class _WebViewPageState extends State<WebViewPage> {
                           // 处理 thing 组件加载, param字符串转化为 Map<String, String>
                           final paramMap = param != null ? Map<String, String>.from(param) : {};
                           // 更新ThingModel
-
-                          
+                          Provider.of<ThirdCloudModel>(context, listen: false).setAll(paramMap['platformName'] ?? '',
+                              paramMap['workspaceName'] ?? '', paramMap['desc'] ?? '');
                           break;
                         case 'api':
                           // 处理 api 组件加载
-                          print('Load Component: $name, Param: $param');
+                          final paramMap = param != null ? Map<String, String>.from(param) : {};
+                          // 更新 ApiModel
+                          Provider.of<ApiModel>(context, listen: false).setAll(paramMap['url'] ?? '', paramMap['token'] ?? '');
                           break;
-                        case 'ws':
-                          // 处理 WebSocket 组件加载
-                          print('Load Component: $name, Param: $param');
+                        case 'ws':                          
+                          final paramMap = param != null ? Map<String, String>.from(param) : {};
+                          // 更新 WebSocketModel
+                          Provider.of<WsModel>(context, listen: false).setAll(paramMap['host'] ?? '', paramMap['token'] ?? '', paramMap['callback'] ?? '');
                           break;
                         default:
                           // 处理其他组件加载
                           print('Load Component: $name, Param: $param');
                       }
-
-
-
-
-
 
                       print('Load Component: $name, Param: $param');
                     }

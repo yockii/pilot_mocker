@@ -24,6 +24,13 @@ class WsModel with ChangeNotifier {
     notifyListeners();
   }
 
+  void setAll(String host, String token, String connectCallback) {
+    _host = host;
+    _token = token;
+    _connectCallback = connectCallback;
+    notifyListeners();
+  }
+
   void clear() {
     _host = '';
     _token = '';
