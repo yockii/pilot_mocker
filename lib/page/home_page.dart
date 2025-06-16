@@ -65,7 +65,7 @@ class HomePage extends StatelessWidget {
                           child: InkWell(
                             borderRadius: BorderRadius.circular(4),
                             onTap: () {
-                              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CloudServicePage()));
+                              Navigator.of(context).pushNamed('/cloud_service');
                             },
                             child: Container(
                               padding: const EdgeInsets.all(16),

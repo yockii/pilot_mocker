@@ -10,7 +10,7 @@ class ThirdPartCloudPage extends StatefulWidget {
 class _ThirdPartCloudPageState extends State<ThirdPartCloudPage> {
   String _url = '';
   late final TextEditingController _controller;
-  final List<String> _history = ['https://example.com', 'https://flutter.dev'];
+  final List<String> _history = ['http://127.0.0.1:3000', 'https://flutter.dev'];
 
   @override
   void initState() {
@@ -56,7 +56,14 @@ class _ThirdPartCloudPageState extends State<ThirdPartCloudPage> {
                       ),
                       const SizedBox(width: 8),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          if (_url.isNotEmpty && !_history.contains(_url)) {
+                            setState(() {
+                              _history.add(_url);
+                            });
+                          }
+                          Navigator.of(context).pushNamed('/web_view', arguments: {'url': _url});
+                        },
                         style: ButtonStyle(
                           shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
@@ -116,10 +123,18 @@ class _ThirdPartCloudPageState extends State<ThirdPartCloudPage> {
                 itemCount: _history.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
-                  return Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(12),
-                    child: Text(_history[index], style: const TextStyle(fontSize: 14)),
+                  return InkWell(
+                    onTap: () {
+                      setState(() {
+                        _url = _history[index];
+                        _controller.text = _url;
+                      });
+                    },
+                    child: Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.all(12),
+                      child: Text(_history[index], style: const TextStyle(fontSize: 14)),
+                    ),
                   );
                 },
               ),

@@ -75,7 +75,7 @@ class CloudServicePage extends StatelessWidget {
                           child: InkWell(
                             onTap: () {
                               // 导航到第三方云界面
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => ThirdPartCloudPage()));
+                              Navigator.of(context).pushNamed('/thirdpart_cloud');
                             },
                             child: Container(
                               color: Colors.white,
