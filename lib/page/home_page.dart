@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pilot_mocker/page/cloud_service_page.dart';
+import 'package:pilot_mocker/model/third_cloud.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -74,14 +75,17 @@ class HomePage extends StatelessWidget {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('欢迎使用', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                      Text('请登录以继续', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-                                    ],
+                                  Consumer<ThirdCloudModel>(
+                                    builder: (context, thirdCloud, child) => Column(
+                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(thirdCloud.platformName == '' ? '欢迎使用' : thirdCloud.platformName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                        Text(thirdCloud.workspaceName == '' ? '请登录以继续' : thirdCloud.workspaceName, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                                      ],
+                                    ),
                                   ),
+                                  
                                   const Icon(Icons.cloud),
                                 ],
                               ),

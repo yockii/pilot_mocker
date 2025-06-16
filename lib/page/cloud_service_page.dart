@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pilot_mocker/page/thirdpart_cloud_page.dart';
 
 class CloudServicePage extends StatelessWidget {
   const CloudServicePage({super.key});

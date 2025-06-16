@@ -3,6 +3,8 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:pilot_mocker/model/third_cloud.dart';
+import 'package:provider/provider.dart';
 
 class WebViewPage extends StatefulWidget {
   final String url;
@@ -32,6 +34,8 @@ class _WebViewPageState extends State<WebViewPage> {
 
   @override
   Widget build(BuildContext context) {
+    final thirdCloud = Provider.of<ThirdCloudModel>(context, listen: false);
+
     return Material(
       child: Container(
         color: const Color.fromARGB(255, 233, 233, 233),
@@ -283,7 +287,7 @@ class _WebViewPageState extends State<WebViewPage> {
                       final platformName = data[0];
                       final workspaceName = data[1];
                       final desc = data[2];
-                      print('Platform Name: $platformName, Workspace Name: $workspaceName, Description: $desc');
+                      thirdCloud.setAll(platformName, workspaceName, desc);
                     }
                   });
                   controller.addJavaScriptHandler(handlerName: 'platformStopSelf', callback: (data) {
@@ -294,6 +298,33 @@ class _WebViewPageState extends State<WebViewPage> {
                     if (data.isNotEmpty) {
                       final name = data[0];
                       final param = data.length > 1 ? data[1] : null;
+
+                      switch (name) {
+                        case 'thing':
+                          // 处理 thing 组件加载, param字符串转化为 Map<String, String>
+                          final paramMap = param != null ? Map<String, String>.from(param) : {};
+                          // 更新ThingModel
+
+                          
+                          break;
+                        case 'api':
+                          // 处理 api 组件加载
+                          print('Load Component: $name, Param: $param');
+                          break;
+                        case 'ws':
+                          // 处理 WebSocket 组件加载
+                          print('Load Component: $name, Param: $param');
+                          break;
+                        default:
+                          // 处理其他组件加载
+                          print('Load Component: $name, Param: $param');
+                      }
+
+
+
+
+
+
                       print('Load Component: $name, Param: $param');
                     }
                   });
