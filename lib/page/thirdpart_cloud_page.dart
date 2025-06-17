@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ThirdPartCloudPage extends StatefulWidget {
   const ThirdPartCloudPage({super.key});
@@ -10,12 +11,29 @@ class ThirdPartCloudPage extends StatefulWidget {
 class _ThirdPartCloudPageState extends State<ThirdPartCloudPage> {
   String _url = '';
   late final TextEditingController _controller;
-  final List<String> _history = ['http://127.0.0.1:3000', 'https://flutter.dev'];
+  final List<String> _history = ['http://127.0.0.1:8081/pilot-login'];
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: _url);
+    _loadHistory();
+  }
+
+  Future<void> _loadHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList('third_party_history');
+    if (list != null) {
+      setState(() {
+        _history.clear();
+        _history.addAll(list);
+      });
+    }
+  }
+
+  Future<void> _saveHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('third_party_history', _history);
   }
 
   @override
@@ -62,6 +80,7 @@ class _ThirdPartCloudPageState extends State<ThirdPartCloudPage> {
                             setState(() {
                               _history.add(_url);
                             });
+                            _saveHistory();
                           }
                           Navigator.of(context).pushNamed('/web_view', arguments: {'url': _url});
                         },
@@ -124,17 +143,33 @@ class _ThirdPartCloudPageState extends State<ThirdPartCloudPage> {
                 itemCount: _history.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: () {
-                      setState(() {
-                        _url = _history[index];
-                        _controller.text = _url;
-                      });
-                    },
-                    child: Container(
-                      color: Colors.white,
-                      padding: const EdgeInsets.all(12),
-                      child: Text(_history[index], style: const TextStyle(fontSize: 14)),
+                  final url = _history[index];
+                  return Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                _url = url;
+                                _controller.text = _url;
+                              });
+                            },
+                            child: Text(url, style: const TextStyle(fontSize: 14)),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.red),
+                          onPressed: () {
+                            setState(() {
+                              _history.removeAt(index);
+                            });
+                            _saveHistory();
+                          },
+                        ),
+                      ],
                     ),
                   );
                 },

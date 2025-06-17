@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -87,8 +88,17 @@ class _WebViewPageState extends State<WebViewPage> {
                                     child: const Text('取消'),
                                   ),
                                   TextButton(
-                                    onPressed: () {
-                                      // TODO 执行注销操作
+                                    onPressed: () async {
+                                      // 清除所有模型数据
+                                      thirdCloud.clear();
+                                      thing.clear();
+                                      ws.clear();
+                                      api.clear();
+                                      // 清除webview中的localStorage数据
+                                      await webViewController?.evaluateJavascript(source: "window.localStorage.clear();");
+                                      // 关闭确认对话框
+                                      Navigator.of(context).pop();
+                                      // 返回上一个界面
                                       Navigator.of(context).pop();
                                     },
                                     child: const Text('确认', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -147,7 +157,7 @@ class _WebViewPageState extends State<WebViewPage> {
         return '{"code":0,"message":"ok","data":{}}';
     },
     platformGetRemoteControllerSN() {
-        return '{"code":0,"message":"ok","data":{"sn":"RC123456789"}}';
+        return '{"code":0,"message":"ok","data":"RC123456789"}';
     },
     platformGetRemoteControllerEnum() {
         return '{"code":0,"message":"ok","data":{"enum":["RC1", "RC2", "RC3"]}}';
@@ -187,14 +197,14 @@ class _WebViewPageState extends State<WebViewPage> {
     },
     platformLoadComponent(name, param) {
         window.flutter_inappwebview.callHandler('platformLoadComponent', name, param);
-        return '{"code":0,"message":"ok","data":true}';
+        return '{"code":0,"message":"ok","data":{}}';
     },
     platformUnloadComponent(name) {
         window.flutter_inappwebview.callHandler('platformUnloadComponent', name);
         return '{"code":0,"message":"ok","data":true}';
     },
     platformIsComponentLoaded(name) {
-        return '{"code":0,"message":"ok","data":' + this._loadedComponents.includes(name) + '}';
+        return '{"code":0,"message":"ok","data":' + this._loadedComponents.has(name) + '}';
     },
     platformIsAppInstalled(appId) {
         return '{"code":0,"message":"ok","data":false}';
@@ -223,7 +233,8 @@ class _WebViewPageState extends State<WebViewPage> {
         return '{"code":0,"message":"ok","data":true}';
     },
     thingGetConfigs() {
-        return '{"code":0,"message":"ok","data":{"userName": "' + this._userName + '", "passwd": "' + this._passwd + '", "callback": "' + this._thingCallback + '"}}';
+        const r = '{"code":0,"message":"ok","data": "{\\\\"userName\\\\": \\\\"' + this._userName + '\\\\", \\\\"passwd\\\\": \\\\"' + this._passwd + '\\\\", \\\\"callback\\\\": \\\\"' + this._thingCallback + '\\\\"}" }';
+        return r;
     },
 
     ///// api
@@ -321,21 +332,26 @@ class _WebViewPageState extends State<WebViewPage> {
                         switch (name) {
                           case 'thing':
                             // 处理 thing 组件加载, param字符串转化为 Map<String, String>
-                            final paramMap = param != null ? Map<String, String>.from(param) : {};
+                            Map<String, dynamic> paramMap = param != null ? json.decode(param) : {};
+
+                            // 获取参数
+                            final host = paramMap['host'] ?? '';
+                            final username = paramMap['username'] ?? '';
+                            final password = paramMap['password'] ?? '';
+                            final connectCallback = paramMap['connectCallback'] ?? '';
                             // 更新ThingModel
-                            Provider.of<ThingModel>(context, listen: false).setAll(paramMap['host'] ?? '', paramMap['username'] ?? '', paramMap['password'] ?? '', paramMap['connectCallback'] ?? '');
+                            Provider.of<ThingModel>(context, listen: false).setAll(host, username, password, connectCallback);
+                            await thingConnect(username, password, connectCallback);
 
                             await controller.evaluateJavascript(source: """
                               window.djiBridge._loadedComponents.add('thing');
-                              window.djiBridge._thingCallback = '${paramMap['connectCallback']}';
-                              window.djiBridge._mqttHost = '${paramMap['host']}';
-                              window.djiBridge._userName = '${paramMap['username']}';
-                              window.djiBridge._passwd = '${paramMap['password']}';
                             """);
+
+
                             break;
                           case 'api':
                             // 处理 api 组件加载
-                            final paramMap = param != null ? Map<String, String>.from(param) : {};
+                            Map<String, dynamic> paramMap = param != null ? json.decode(param) : {};
                             // 更新 ApiModel
                             Provider.of<ApiModel>(context, listen: false).setAll(paramMap['host'] ?? '', paramMap['token'] ?? '');
                             
@@ -344,16 +360,18 @@ class _WebViewPageState extends State<WebViewPage> {
                               window.djiBridge._apiHost = '${paramMap['host']}';
                               window.djiBridge._apiToken = '${paramMap['token']}';
                             """);
+
                             break;
                           case 'ws':
-                            final paramMap = param != null ? Map<String, String>.from(param) : {};
-                            // 更新 WebSocketModel
-                            Provider.of<WsModel>(context, listen: false).setAll(paramMap['host'] ?? '', paramMap['token'] ?? '', paramMap['connectCallback'] ?? '');
+                            Map<String, dynamic> paramMap = param != null ? json.decode(param) : {};
+                            // 获取参数
+                            final host = paramMap['host'] ?? '';
+                            final token = paramMap['token'] ?? '';
+                            final connectCallback = paramMap['connectCallback'] ?? '';
+                            // 连接 WebSocket
+                            await wsConnect(host, token, connectCallback);
                             await controller.evaluateJavascript(source: """
                               window.djiBridge._loadedComponents.add('ws');
-                              window.djiBridge._wsHost = '${paramMap['host']}';
-                              window.djiBridge._wsToken = '${paramMap['token']}';
-                              window.djiBridge._wsCallback = '${paramMap['connectCallback']}';
                             """);
                             break;
                           default:
@@ -435,27 +453,8 @@ class _WebViewPageState extends State<WebViewPage> {
                         final userName = data[0];
                         final passwd = data[1];
                         final callback = data[2];
-                        final mqttClient = await MqttClientSingleton().connect(
-                          url: thing.host,
-                          clientId: '',
-                          username: userName,
-                          password: passwd,
-                        );
-                        // 连接成功后更新状态
-                        thing.setConnectCallback(callback);
-                        thing.setUsername(userName);
-                        thing.setPassword(passwd);
-                        thing.setHost(thing.host);
-                        // 更新 JavaScript 状态，同时回调window.[callback]方法
-                        controller.evaluateJavascript(source: """
-                          window.djiBridge._mqttConnectState = true;
-                          window.djiBridge._thingCallback = '$callback';
-                          window.djiBridge._userName = '$userName';
-                          window.djiBridge._passwd = '$passwd';
-                          window.$callback && window.$callback();
-                        """);
 
-                        // TODO 处理连接成功后的逻辑
+                        await thingConnect(userName, passwd, callback);
                       }
                     },
                   );
@@ -495,22 +494,7 @@ class _WebViewPageState extends State<WebViewPage> {
                         final host = data[0];
                         final token = data[1];
                         final callback = data[2];
-                        ws.setAll(host, token, callback);
-                        final wsClient = WebSocketClient();
-                        if (wsClient.isConnected) {
-                          await wsClient.disconnect();
-                        }
-                        wsClient.setHost(host);
-                        wsClient.setToken(token);
-                        await wsClient.connect();
-                        // 更新 JavaScript 状态
-                        controller.evaluateJavascript(source: """
-                          window.djiBridge._wsConnectState = true;
-                          window.djiBridge._wsHost = '$host';
-                          window.djiBridge._wsToken = '$token';
-                          window.djiBridge._wsCallback = '$callback';
-                          window.$callback && window.$callback();
-                        """);
+                        await wsConnect(host, token, callback);
                       }
                     },
                   );
@@ -562,5 +546,49 @@ class _WebViewPageState extends State<WebViewPage> {
         ),
       ),
     );
+  }
+
+  Future<void> thingConnect(String userName, String passwd, String callback) async {
+    final thing = Provider.of<ThingModel>(context, listen: false);
+    await MqttClientSingleton().connect(
+      url: thing.host,
+      clientId: '',
+      username: userName,
+      password: passwd,
+    );
+    // 连接成功后更新状态
+    thing.setConnectCallback(callback);
+    thing.setUsername(userName);
+    thing.setPassword(passwd);
+    thing.setHost(thing.host);
+    // 更新 JavaScript 状态，同时回调window.[callback]方法
+    webViewController?.evaluateJavascript(source: """
+      window.djiBridge._mqttConnectState = true;
+      window.djiBridge._thingCallback = '$callback';
+      window.djiBridge._userName = '$userName';
+      window.djiBridge._passwd = '$passwd';
+      window.$callback && window.$callback();
+    """);
+  }
+
+  Future<void> wsConnect(String host, String token, String callback) async {
+    final ws = Provider.of<WsModel>(context, listen: false);
+    final wsClient = WebSocketClient();
+    if (wsClient.isConnected) {
+      await wsClient.disconnect();
+    }
+    wsClient.setHost(host);
+    wsClient.setToken(token);
+    await wsClient.connect();
+    // 更新状态
+    ws.setAll(host, token, callback);
+    // 更新 JavaScript 状态，同时回调window.[callback]方法
+    webViewController?.evaluateJavascript(source: """
+      window.djiBridge._wsConnectState = true;
+      window.djiBridge._wsHost = '$host';
+      window.djiBridge._wsToken = '$token';
+      window.djiBridge._wsCallback = '$callback';
+      window.$callback && window.$callback();
+    """);
   }
 }
