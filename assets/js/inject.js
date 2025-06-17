@@ -1,11 +1,26 @@
 window.djiBridge = {
+    ///// platform
     _uuid: '',
     _isVerified: false,
-    _loadedComponents: [],
-    _token: '',
+    _loadedComponents: new Set(),
+    ///// thing
+    _mqttConnectState: false,
+    _mqttHost: '',
+    _userName: '',
+    _passwd: '',
+    _thingCallback: '',
+    ///// api
+    _apiHost: '',
+    _apiToken: '',
+    ///// ws
+    _wsConnectState: false,
+    _wsHost: '',
+    _wsToken: '',
+    _wsCallback: '',
 
+    ///// platform
     platformSetWorkspaceId(uuid) {
-        _uuid = uuid;
+        this._uuid = uuid;
         return '{"code":0,"message":"ok","data":{}}';
     },
     platformSetInformation(platformName, workspaceName, desc) {
@@ -60,7 +75,7 @@ window.djiBridge = {
         return '{"code":0,"message":"ok","data":true}';
     },
     platformIsComponentLoaded(name) {
-        return '{"code":0,"message":"ok","data":' + _loadedComponents.includes(name) + '}';
+        return '{"code":0,"message":"ok","data":' + this._loadedComponents.includes(name) + '}';
     },
     platformIsAppInstalled(appId) {
         return '{"code":0,"message":"ok","data":false}';
@@ -74,11 +89,6 @@ window.djiBridge = {
     },
 
     ///// thing
-    _mqttConnectState: false,
-    _userName: '',
-    _passwd: '',
-    _thingCallback: '',
-
     thingGetConnectState() {
         return '{"code":0,"message":"ok","data":' + this._mqttConnectState + '}';
     },
@@ -98,7 +108,6 @@ window.djiBridge = {
     },
 
     ///// api
-    _host: '',
     apiSetToken(token) {
         this._token = token;
         window.flutter_inappwebview.callHandler('apiSetToken', token);
@@ -116,9 +125,6 @@ window.djiBridge = {
     },
 
     ///// ws
-    _wsConnectState: false,
-    _wsHost: '',
-    _wsCallback: '',
     wsGetConnectState() {
         return '{"code":0,"message":"ok","data":' + this._wsConnectState + '}';
     },

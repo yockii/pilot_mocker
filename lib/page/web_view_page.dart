@@ -3,9 +3,12 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:pilot_mocker/client/ws.dart';
 import 'package:pilot_mocker/model/api.dart';
+import 'package:pilot_mocker/model/thing.dart';
 import 'package:pilot_mocker/model/third_cloud.dart';
 import 'package:pilot_mocker/model/ws.dart';
+import 'package:pilot_mocker/client/mqtt.dart';
 import 'package:provider/provider.dart';
 
 class WebViewPage extends StatefulWidget {
@@ -37,6 +40,9 @@ class _WebViewPageState extends State<WebViewPage> {
   @override
   Widget build(BuildContext context) {
     final thirdCloud = Provider.of<ThirdCloudModel>(context, listen: false);
+    final thing = Provider.of<ThingModel>(context, listen: false);
+    final ws = Provider.of<WsModel>(context, listen: false);
+    final api = Provider.of<ApiModel>(context, listen: false);
 
     return Material(
       child: Container(
@@ -52,11 +58,7 @@ class _WebViewPageState extends State<WebViewPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    style: ButtonStyle(iconSize: WidgetStateProperty.all(24)),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
+                  IconButton(icon: const Icon(Icons.arrow_back), style: ButtonStyle(iconSize: WidgetStateProperty.all(24)), onPressed: () => Navigator.of(context).pop()),
                   Text(_title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
                   Row(
                     children: [
@@ -97,9 +99,7 @@ class _WebViewPageState extends State<WebViewPage> {
                           );
                         },
                         style: ButtonStyle(
-                          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
-                          ),
+                          shape: WidgetStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0))),
                           backgroundColor: WidgetStateProperty.all(Colors.black),
                           foregroundColor: WidgetStateProperty.all(Colors.white),
                         ),
@@ -118,13 +118,28 @@ class _WebViewPageState extends State<WebViewPage> {
                 initialUserScripts: UnmodifiableListView([
                   UserScript(
                     source: """window.djiBridge = {
+    ///// platform
     _uuid: '',
     _isVerified: false,
-    _loadedComponents: [],
-    _token: '',
+    _loadedComponents: new Set(),
+    ///// thing
+    _mqttConnectState: false,
+    _mqttHost: '',
+    _userName: '',
+    _passwd: '',
+    _thingCallback: '',
+    ///// api
+    _apiHost: '',
+    _apiToken: '',
+    ///// ws
+    _wsConnectState: false,
+    _wsHost: '',
+    _wsToken: '',
+    _wsCallback: '',
 
+    ///// platform
     platformSetWorkspaceId(uuid) {
-        _uuid = uuid;
+        this._uuid = uuid;
         return '{"code":0,"message":"ok","data":{}}';
     },
     platformSetInformation(platformName, workspaceName, desc) {
@@ -163,10 +178,10 @@ class _WebViewPageState extends State<WebViewPage> {
         return '{"code":0,"message":"ok","data":{"modelVersion": "01.00.00", "appVersion":"10.0.0.0"}}';
     },
     platformIsVerified() {
-    debugger
         return '{"code":0,"message":"ok","data": ' + this._isVerified + '}';
     },
     platformVerifyLicense(appId, appKey, appLicense) {
+        this._isVerified = true; // 模拟验证成功
         window.flutter_inappwebview.callHandler('platformVerifyLicense', appId, appKey, appLicense);
         return '{"code":0,"message":"ok","data":true}';
     },
@@ -179,7 +194,7 @@ class _WebViewPageState extends State<WebViewPage> {
         return '{"code":0,"message":"ok","data":true}';
     },
     platformIsComponentLoaded(name) {
-        return '{"code":0,"message":"ok","data":' + _loadedComponents.includes(name) + '}';
+        return '{"code":0,"message":"ok","data":' + this._loadedComponents.includes(name) + '}';
     },
     platformIsAppInstalled(appId) {
         return '{"code":0,"message":"ok","data":false}';
@@ -193,11 +208,6 @@ class _WebViewPageState extends State<WebViewPage> {
     },
 
     ///// thing
-    _mqttConnectState: false,
-    _userName: '',
-    _passwd: '',
-    _thingCallback: '',
-
     thingGetConnectState() {
         return '{"code":0,"message":"ok","data":' + this._mqttConnectState + '}';
     },
@@ -217,7 +227,6 @@ class _WebViewPageState extends State<WebViewPage> {
     },
 
     ///// api
-    _host: '',
     apiSetToken(token) {
         this._token = token;
         window.flutter_inappwebview.callHandler('apiSetToken', token);
@@ -235,9 +244,6 @@ class _WebViewPageState extends State<WebViewPage> {
     },
 
     ///// ws
-    _wsConnectState: false,
-    _wsHost: '',
-    _wsCallback: '',
     wsGetConnectState() {
         return '{"code":0,"message":"ok","data":' + this._wsConnectState + '}';
     },
@@ -283,124 +289,256 @@ class _WebViewPageState extends State<WebViewPage> {
                 ]),
                 onWebViewCreated: (controller) {
                   // 注册 JavaScript 处理器
-                  controller.addJavaScriptHandler(handlerName: 'platformSetInformation', callback: (data) {
-                    // 设置平台名称
-                    if (data.length >= 3) {
-                      final platformName = data[0];
-                      final workspaceName = data[1];
-                      final desc = data[2];
-                      thirdCloud.setAll(platformName, workspaceName, desc);
-                    }
-                  });
-                  controller.addJavaScriptHandler(handlerName: 'platformStopSelf', callback: (data) {
-                    // 退出webview平台
-                  });
-                  controller.addJavaScriptHandler(handlerName: 'platformLoadComponent', callback: (data) {
-                    // 加载组件
-                    if (data.isNotEmpty) {
-                      final name = data[0];
-                      final param = data.length > 1 ? data[1] : null;
-
-                      switch (name) {
-                        case 'thing':
-                          // 处理 thing 组件加载, param字符串转化为 Map<String, String>
-                          final paramMap = param != null ? Map<String, String>.from(param) : {};
-                          // 更新ThingModel
-                          Provider.of<ThirdCloudModel>(context, listen: false).setAll(paramMap['platformName'] ?? '',
-                              paramMap['workspaceName'] ?? '', paramMap['desc'] ?? '');
-                          break;
-                        case 'api':
-                          // 处理 api 组件加载
-                          final paramMap = param != null ? Map<String, String>.from(param) : {};
-                          // 更新 ApiModel
-                          Provider.of<ApiModel>(context, listen: false).setAll(paramMap['url'] ?? '', paramMap['token'] ?? '');
-                          break;
-                        case 'ws':                          
-                          final paramMap = param != null ? Map<String, String>.from(param) : {};
-                          // 更新 WebSocketModel
-                          Provider.of<WsModel>(context, listen: false).setAll(paramMap['host'] ?? '', paramMap['token'] ?? '', paramMap['callback'] ?? '');
-                          break;
-                        default:
-                          // 处理其他组件加载
-                          print('Load Component: $name, Param: $param');
+                  controller.addJavaScriptHandler(
+                    handlerName: 'platformSetInformation',
+                    callback: (data) {
+                      // 设置平台名称
+                      if (data.length >= 3) {
+                        final platformName = data[0];
+                        final workspaceName = data[1];
+                        final desc = data[2];
+                        thirdCloud.setAll(platformName, workspaceName, desc);
                       }
+                    },
+                  );
+                  controller.addJavaScriptHandler(
+                    handlerName: 'platformStopSelf',
+                    callback: (data) {
+                      // 退出webview平台
+                      thirdCloud.clear();
+                      thing.clear();
+                      ws.clear();
+                      api.clear();
+                    },
+                  );
+                  controller.addJavaScriptHandler(
+                    handlerName: 'platformLoadComponent',
+                    callback: (data) async {
+                      // 加载组件
+                      if (data.isNotEmpty) {
+                        final name = data[0];
+                        final param = data.length > 1 ? data[1] : null;
+                        switch (name) {
+                          case 'thing':
+                            // 处理 thing 组件加载, param字符串转化为 Map<String, String>
+                            final paramMap = param != null ? Map<String, String>.from(param) : {};
+                            // 更新ThingModel
+                            Provider.of<ThingModel>(context, listen: false).setAll(paramMap['host'] ?? '', paramMap['username'] ?? '', paramMap['password'] ?? '', paramMap['connectCallback'] ?? '');
 
-                      print('Load Component: $name, Param: $param');
-                    }
-                  });
-                  controller.addJavaScriptHandler(handlerName: 'platformUnloadComponent', callback: (data) {
-                    // 卸载组件
-                    if (data.isNotEmpty) {
-                      final name = data[0];
-                      print('Unload Component: $name');
-                    }
-                  });
-                  controller.addJavaScriptHandler(handlerName: 'platformVerifyLicense', callback: (data) {
-                    // 验证许可证
-                    if (data.length >= 3) {
-                      final appId = data[0];
-                      final appKey = data[1];
-                      final appLicense = data[2];
-                      print('Verify License: App ID: $appId, App Key: $appKey, App License: $appLicense');
-                    }
-                  });
-                  controller.addJavaScriptHandler(handlerName: 'platformLoadComponent', callback: (data) {
-                    // 加载组件
-                    if (data.isNotEmpty) {
-                      final name = data[0];
-                      final param = data.length > 1 ? data[1] : null;
-                      print('Load Component: $name, Param: $param');
-                    }
-                  });
-                  controller.addJavaScriptHandler(handlerName: 'platformUnloadComponent', callback: (data) {
-                    // 卸载组件
-                    if (data.isNotEmpty) {
-                      final name = data[0];
-                      print('Unload Component: $name');
-                    }
-                  });
-                  controller.addJavaScriptHandler(handlerName: 'thingConnect', callback: (data) {
-                    // 连接 MQTT
-                    if (data.length >= 3) {
-                      final userName = data[0];
-                      final passwd = data[1];
-                      final callback = data[2];
-                      print('Thing Connect: UserName: $userName, Password: $passwd, Callback: $callback');
-                    }
-                  });
-                  controller.addJavaScriptHandler(handlerName: 'thingDisconnect', callback: (data) {
-                    // 断开 MQTT 连接
-                    print('Thing Disconnect');
-                  });
-                  controller.addJavaScriptHandler(handlerName: 'apiSetToken', callback: (data) {
-                    // 设置 API Token
-                    if (data.isNotEmpty) {
-                      final token = data[0];
-                      print('API Set Token: $token');
-                    }
-                  });
-                  controller.addJavaScriptHandler(handlerName: 'wsConnect', callback: (data) {
-                    // 连接 WebSocket
-                    if (data.length >= 3) {
-                      final host = data[0];
-                      final token = data[1];
-                      final callback = data[2];
-                      print('WebSocket Connect: Host: $host, Token: $token, Callback: $callback');
-                    }
-                  });
-                  controller.addJavaScriptHandler(handlerName: 'wsDisconnect', callback: (data) {
-                    // 断开 WebSocket 连接
-                    print('WebSocket Disconnect');
-                  });
-                  controller.addJavaScriptHandler(handlerName: 'wsSend', callback: (data) {
-                    // 发送 WebSocket 消息
-                    if (data.isNotEmpty) {
-                      final message = data[0];
-                      print('WebSocket Send: Message: $message');
-                    }
-                  });
+                            await controller.evaluateJavascript(source: """
+                              window.djiBridge._loadedComponents.add('thing');
+                              window.djiBridge._thingCallback = '${paramMap['connectCallback']}';
+                              window.djiBridge._mqttHost = '${paramMap['host']}';
+                              window.djiBridge._userName = '${paramMap['username']}';
+                              window.djiBridge._passwd = '${paramMap['password']}';
+                            """);
+                            break;
+                          case 'api':
+                            // 处理 api 组件加载
+                            final paramMap = param != null ? Map<String, String>.from(param) : {};
+                            // 更新 ApiModel
+                            Provider.of<ApiModel>(context, listen: false).setAll(paramMap['host'] ?? '', paramMap['token'] ?? '');
+                            
+                            await controller.evaluateJavascript(source: """
+                              window.djiBridge._loadedComponents.add('api');
+                              window.djiBridge._apiHost = '${paramMap['host']}';
+                              window.djiBridge._apiToken = '${paramMap['token']}';
+                            """);
+                            break;
+                          case 'ws':
+                            final paramMap = param != null ? Map<String, String>.from(param) : {};
+                            // 更新 WebSocketModel
+                            Provider.of<WsModel>(context, listen: false).setAll(paramMap['host'] ?? '', paramMap['token'] ?? '', paramMap['connectCallback'] ?? '');
+                            await controller.evaluateJavascript(source: """
+                              window.djiBridge._loadedComponents.add('ws');
+                              window.djiBridge._wsHost = '${paramMap['host']}';
+                              window.djiBridge._wsToken = '${paramMap['token']}';
+                              window.djiBridge._wsCallback = '${paramMap['connectCallback']}';
+                            """);
+                            break;
+                          default:
+                            // 处理其他组件加载
+                            print('Load Component: $name, Param: $param');
+                        }
 
+                        print('Load Component: $name, Param: $param');
+                      }
+                    },
+                  );
+                  controller.addJavaScriptHandler(
+                    handlerName: 'platformUnloadComponent',
+                    callback: (data) async {
+                      // 卸载组件
+                      if (data.isNotEmpty) {
+                        final name = data[0];
+                        switch (name) {
+                          case 'thing':
+                            // 处理 thing 组件卸载
+                            Provider.of<ThingModel>(context, listen: false).clear();
+                            await controller.evaluateJavascript(source: """
+                              window.djiBridge._loadedComponents.delete('thing');
+                              window.djiBridge._thingCallback = '';
+                              window.djiBridge._mqttHost = '';
+                              window.djiBridge._userName = '';
+                              window.djiBridge._passwd = '';
+                            """);
+                            break;
+                          case 'api':
+                            // 处理 api 组件卸载
+                            Provider.of<ApiModel>(context, listen: false).clear();
+                            await controller.evaluateJavascript(source: """
+                              window.djiBridge._loadedComponents.delete('api');
+                              window.djiBridge._apiHost = '';
+                              window.djiBridge._apiToken = '';
+                            """);
+                            break;
+                          case 'ws':
+                            // 处理 WebSocket 组件卸载
+                            Provider.of<WsModel>(context, listen: false).clear();
+                            await controller.evaluateJavascript(source: """
+                              window.djiBridge._loadedComponents.delete('ws');
+                              window.djiBridge._wsHost = '';
+                              window.djiBridge._wsToken = '';
+                              window.djiBridge._wsCallback = '';
+                            """);
+                            break;
+                          default:
+                            // 处理其他组件卸载
+                            print('Unload Component: $name');
+                        }
+                        await controller.evaluateJavascript(source: """
+                          window.djiBridge._loadedComponents.delete('$name');
+                        """);
+                      }
+                    },
+                  );
+                  controller.addJavaScriptHandler(
+                    handlerName: 'platformVerifyLicense',
+                    callback: (data) async {
+                      // 验证许可证
+                      if (data.length >= 3) {
+                        final appId = data[0];
+                        final appKey = data[1];
+                        final appLicense = data[2];
+                        print('Verify License: AppId: $appId, AppKey: $appKey, AppLicense: $appLicense');
+                        await controller.evaluateJavascript(source: """
+                          window.djiBridge._isVerified = true; // 模拟验证成功
+                        """);
+                      }
+                    },
+                  );
+                  controller.addJavaScriptHandler(
+                    handlerName: 'thingConnect',
+                    callback: (data) async {
+                      // 连接 MQTT
+                      if (data.length >= 3) {
+                        final userName = data[0];
+                        final passwd = data[1];
+                        final callback = data[2];
+                        final mqttClient = await MqttClientSingleton().connect(
+                          url: thing.host,
+                          clientId: '',
+                          username: userName,
+                          password: passwd,
+                        );
+                        // 连接成功后更新状态
+                        thing.setConnectCallback(callback);
+                        thing.setUsername(userName);
+                        thing.setPassword(passwd);
+                        thing.setHost(thing.host);
+                        // 更新 JavaScript 状态，同时回调window.[callback]方法
+                        controller.evaluateJavascript(source: """
+                          window.djiBridge._mqttConnectState = true;
+                          window.djiBridge._thingCallback = '$callback';
+                          window.djiBridge._userName = '$userName';
+                          window.djiBridge._passwd = '$passwd';
+                          window.$callback && window.$callback();
+                        """);
 
+                        // TODO 处理连接成功后的逻辑
+                      }
+                    },
+                  );
+                  controller.addJavaScriptHandler(
+                    handlerName: 'thingDisconnect',
+                    callback: (data) {
+                      // 断开 MQTT 连接
+                      MqttClientSingleton().disconnect();
+                      // 更新 JavaScript 状态
+                      controller.evaluateJavascript(source: """
+                        window.djiBridge._mqttConnectState = false;
+                        window.djiBridge._thingCallback = null;
+                        window.djiBridge._userName = null;
+                        window.djiBridge._passwd = null;
+                      """);
+                    },
+                  );
+                  controller.addJavaScriptHandler(
+                    handlerName: 'apiSetToken',
+                    callback: (data) {
+                      // 设置 API Token
+                      if (data.isNotEmpty) {
+                        final token = data[0];
+                        api.setToken(token);
+                        // 更新 JavaScript 状态
+                        controller.evaluateJavascript(source: """
+                          window.djiBridge._apiToken = '$token';
+                        """);
+                      }
+                    },
+                  );
+                  controller.addJavaScriptHandler(
+                    handlerName: 'wsConnect',
+                    callback: (data) async {
+                      // 连接 WebSocket
+                      if (data.length >= 3) {
+                        final host = data[0];
+                        final token = data[1];
+                        final callback = data[2];
+                        ws.setAll(host, token, callback);
+                        final wsClient = WebSocketClient();
+                        if (wsClient.isConnected) {
+                          await wsClient.disconnect();
+                        }
+                        wsClient.setHost(host);
+                        wsClient.setToken(token);
+                        await wsClient.connect();
+                        // 更新 JavaScript 状态
+                        controller.evaluateJavascript(source: """
+                          window.djiBridge._wsConnectState = true;
+                          window.djiBridge._wsHost = '$host';
+                          window.djiBridge._wsToken = '$token';
+                          window.djiBridge._wsCallback = '$callback';
+                          window.$callback && window.$callback();
+                        """);
+                      }
+                    },
+                  );
+                  controller.addJavaScriptHandler(
+                    handlerName: 'wsDisconnect',
+                    callback: (data) async {
+                      // 断开 WebSocket 连接
+                      final wsClient = WebSocketClient();
+                      await wsClient.disconnect();
+                      // 更新 JavaScript 状态
+                      controller.evaluateJavascript(source: """
+                        window.djiBridge._wsConnectState = false;
+                      """);
+                    },
+                  );
+                  controller.addJavaScriptHandler(
+                    handlerName: 'wsSend',
+                    callback: (data) {
+                      // 发送 WebSocket 消息
+                      if (data.isNotEmpty) {
+                        final message = data[0];
+                        final wsClient = WebSocketClient();
+                        if (wsClient.isConnected) {
+                          wsClient.send(message);
+                        }
+                      }
+                    },
+                  );
 
                   webViewController = controller;
                 },
@@ -420,13 +558,6 @@ class _WebViewPageState extends State<WebViewPage> {
                 },
               ),
             ),
-
-
-
-
-
-
-
           ],
         ),
       ),

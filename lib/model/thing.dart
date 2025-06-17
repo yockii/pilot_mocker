@@ -28,6 +28,14 @@ class ThingModel with ChangeNotifier {
     notifyListeners();
   }
 
+  void setAll(String host, String username, String password, String connectCallback) {
+    _host = host;
+    _connectCallback = connectCallback;
+    _username = username;
+    _password = password;
+    notifyListeners();
+  }
+
   void clear() {
     _host = '';
     _connectCallback = '';

@@ -1,6 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:pilot_mocker/model/api.dart';
+import 'package:pilot_mocker/model/thing.dart';
+import 'package:pilot_mocker/model/third_cloud.dart';
+import 'package:pilot_mocker/model/ws.dart';
 import 'package:pilot_mocker/page/cloud_service_page.dart';
 import 'package:pilot_mocker/page/home_page.dart';
 import 'package:pilot_mocker/page/thirdpart_cloud_page.dart';
@@ -36,7 +40,20 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [],
+      providers: [
+        ChangeNotifierProvider<ThingModel>(
+          create: (_) => ThingModel(),
+        ),
+        ChangeNotifierProvider<ApiModel>(
+          create: (_) => ApiModel(),
+        ),
+        ChangeNotifierProvider<WsModel>(
+          create: (_) => WsModel(),
+        ),
+        ChangeNotifierProvider<ThirdCloudModel>(
+          create: (_) => ThirdCloudModel(),
+        ),
+      ],
       child: MaterialApp(
         title: 'Pilot 2 Mocker',
         theme: ThemeData(brightness: Brightness.light, primaryColor: Colors.blue),
