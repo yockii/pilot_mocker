@@ -1,0 +1,101 @@
+[
+    {
+        "id": "m4d",
+        "serialNumber": "pmy202560m4d",
+        "name": "Matrice 4D",
+        "type": 100,
+        "subType": 0,
+        "embedGimbals": ["m4d_camera"],
+        "compatibleGimbals": []
+    },
+    {
+        "id": "m4td",
+        "serialNumber": "pmy20256m4td",
+        "name": "Matrice 4TD",
+        "type": 100,
+        "subType": 1,
+        "embedGimbals": ["m4td_camera"],
+        "compatibleGimbals": []
+    },
+    {
+        "id": "m3d",
+        "serialNumber": "pmy202560m3d",
+        "name": "Matrice 3D",
+        "type": 91,
+        "subType": 0,
+        "embedGimbals": ["m3d_camera"],
+        "compatibleGimbals": []
+    },
+    {
+        "id": "m3td",
+        "serialNumber": "pmy20256m3td",
+        "name": "Matrice 3TD",
+        "type": 91,
+        "subType": 1,
+        "embedGimbals": ["m3td_camera"],
+        "compatibleGimbals": []
+    },
+    {
+        "id": "m400",
+        "serialNumber": "pmy20256m400",
+        "name": "Matrice 400",
+        "type": 181,
+        "subType": 0,
+        "embedGimbals": [],
+        "compatibleGimbals": ["h30", "h30t"]
+    },
+    {
+        "id": "m350rtk",
+        "serialNumber": "pmy20256m350",
+        "name": "Matrice 350 RTK",
+        "type": 89,
+        "subType": 1,
+        "embedGimbals": [],
+        "compatibleGimbals": ["h20", "h20t", "h20n", "h30", "h30t"]
+    },
+    {
+        "id": "m300rtk",
+        "serialNumber": "pmy20256m300",
+        "name": "Matrice 300 RTK",
+        "type": 60,
+        "subType": 0,
+        "embedGimbals": [],
+        "compatibleGimbals": ["h20", "h20t", "h20n", "h30", "h30t"]
+    },
+    {
+        "id": "m30",
+        "serialNumber": "pmy202560m30",
+        "name": "Matrice 30",
+        "type": 67,
+        "subType": 0,
+        "embedGimbals": ["m30_camera"],
+        "compatibleGimbals": []
+    },
+    {
+        "id": "m30t",
+        "serialNumber": "pmy20256m30t",
+        "name": "Matrice 30T",
+        "type": 67,
+        "subType": 1,
+        "embedGimbals": ["m30t_camera"],
+        "compatibleGimbals": []
+    },
+    {
+        "id": "m3e",
+        "serialNumber": "pmy202560m3e",
+        "name": "Mavic 3 Enterprise",
+        "type": 77,
+        "subType": 0,
+        "embedGimbals": ["m3e_camera"],
+        "compatibleGimbals": []
+    },
+    {
+        "id": "m3t",
+        "serialNumber": "pmy202560m3t",
+        "name": "Mavic 3 Thermal",
+        "type": 77,
+        "subType": 1,
+        "embedGimbals": ["m3t_camera"],
+        "compatibleGimbals": []
+    }
+]

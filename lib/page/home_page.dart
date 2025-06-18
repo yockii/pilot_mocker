@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pilot_mocker/model/third_cloud.dart';
+import 'package:pilot_mocker/widget/aircraft_selection.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatelessWidget {
@@ -28,11 +29,7 @@ class HomePage extends StatelessWidget {
                           },
                         ),
                         const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Icons.shield),
-                          style: ButtonStyle(iconSize: WidgetStateProperty.all(24)),
-                          onPressed: () {},
-                        ),
+                        IconButton(icon: const Icon(Icons.shield), style: ButtonStyle(iconSize: WidgetStateProperty.all(24)), onPressed: () {}),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -76,16 +73,17 @@ class HomePage extends StatelessWidget {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Consumer<ThirdCloudModel>(
-                                    builder: (context, thirdCloud, child) => Column(
-                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(thirdCloud.platformName == '' ? '欢迎使用' : thirdCloud.platformName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                        Text(thirdCloud.workspaceName == '' ? '请登录以继续' : thirdCloud.workspaceName, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-                                      ],
-                                    ),
+                                    builder:
+                                        (context, thirdCloud, child) => Column(
+                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(thirdCloud.platformName == '' ? '欢迎使用' : thirdCloud.platformName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                            Text(thirdCloud.workspaceName == '' ? '请登录以继续' : thirdCloud.workspaceName, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                                          ],
+                                        ),
                                   ),
-                                  
+
                                   const Icon(Icons.cloud),
                                 ],
                               ),
@@ -106,10 +104,7 @@ class HomePage extends StatelessWidget {
                             color: Colors.white,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('航线', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                const Icon(Icons.edit_road),
-                              ],
+                              children: [Text('航线', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const Icon(Icons.edit_road)],
                             ),
                           ),
                         ),
@@ -122,10 +117,7 @@ class HomePage extends StatelessWidget {
                             color: Colors.white,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('相册', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                const Icon(Icons.photo_library),
-                              ],
+                              children: [Text('相册', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const Icon(Icons.photo_library)],
                             ),
                           ),
                         ),
@@ -156,11 +148,7 @@ class HomePage extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 color: Colors.white,
                 child: Column(
-                  children: [
-                    Text('请选择飞行器', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 20),
-                    Text('Adjust your settings here.', style: TextStyle(fontSize: 16, color: Colors.grey[600])),
-                  ],
+                  children: [Text('请选择飞行器', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), const SizedBox(height: 20), Expanded(child: AircraftSelection())],
                 ),
               ),
             ),

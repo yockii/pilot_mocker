@@ -28,7 +28,7 @@ window.djiBridge = {
         return '{"code":0,"message":"ok","data":{}}';
     },
     platformGetRemoteControllerSN() {
-        return '{"code":0,"message":"ok","data":{"sn":"RC123456789"}}';
+        return '{"code":0,"message":"ok","data":"RC123456789"}';
     },
     platformGetRemoteControllerEnum() {
         return '{"code":0,"message":"ok","data":{"enum":["RC1", "RC2", "RC3"]}}';
@@ -37,7 +37,7 @@ window.djiBridge = {
         return '{"code":0,"message":"ok","data":{"enum":["Mavic Air 2", "Phantom 4 Pro", "Inspire 2"]}}';
     },
     platformGetAircraftSN() {
-        return '{"code":0,"message":"ok","data":{"sn":"AC123456789"}}';
+        return '{"code":0,"message":"ok","data":"AC123456789"}';
     },
     platformStartLogin() {
         return '{"code":0,"message":"ok","data":{}}';
@@ -59,23 +59,23 @@ window.djiBridge = {
         return '{"code":0,"message":"ok","data":{"modelVersion": "01.00.00", "appVersion":"10.0.0.0"}}';
     },
     platformIsVerified() {
-    debugger
         return '{"code":0,"message":"ok","data": ' + this._isVerified + '}';
     },
     platformVerifyLicense(appId, appKey, appLicense) {
+        this._isVerified = true; // 模拟验证成功
         window.flutter_inappwebview.callHandler('platformVerifyLicense', appId, appKey, appLicense);
         return '{"code":0,"message":"ok","data":true}';
     },
     platformLoadComponent(name, param) {
         window.flutter_inappwebview.callHandler('platformLoadComponent', name, param);
-        return '{"code":0,"message":"ok","data":true}';
+        return '{"code":0,"message":"ok","data":{}}';
     },
     platformUnloadComponent(name) {
         window.flutter_inappwebview.callHandler('platformUnloadComponent', name);
         return '{"code":0,"message":"ok","data":true}';
     },
     platformIsComponentLoaded(name) {
-        return '{"code":0,"message":"ok","data":' + this._loadedComponents.includes(name) + '}';
+        return '{"code":0,"message":"ok","data":' + this._loadedComponents.has(name) + '}';
     },
     platformIsAppInstalled(appId) {
         return '{"code":0,"message":"ok","data":false}';
@@ -104,7 +104,8 @@ window.djiBridge = {
         return '{"code":0,"message":"ok","data":true}';
     },
     thingGetConfigs() {
-        return '{"code":0,"message":"ok","data":{"userName": "' + this._userName + '", "passwd": "' + this._passwd + '", "callback": "' + this._thingCallback + '"}}';
+        const r = '{"code":0,"message":"ok","data": "{\\\\"userName\\\\": \\\\"' + this._userName + '\\\\", \\\\"passwd\\\\": \\\\"' + this._passwd + '\\\\", \\\\"callback\\\\": \\\\"' + this._thingCallback + '\\\\"}" }';
+        return r;
     },
 
     ///// api

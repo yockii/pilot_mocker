@@ -24,3 +24,5 @@ flutter:
   uses-material-design: true
   assets:
     - assets/js/
+    - assets/def/aircraft.json
+    - assets/def/gimbal.json

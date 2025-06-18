@@ -1,0 +1,128 @@
+[
+    {
+        "id": "z30",
+        "name": "禅思 Z30",
+        "type": 20,
+        "subType": 0,
+        "gimbalindexList": [0,1,2]
+    },
+    {
+        "id": "xt2",
+        "name": "禅思 XT2",
+        "type": 26,
+        "subType": 0,
+        "gimbalindexList": [0,1,2]
+    },
+    {
+        "id": "xts",
+        "name": "禅思 XTS",
+        "type": 41,
+        "subType": 0,
+        "gimbalindexList": [0,1,2]
+    },
+    {
+        "id": "h20",
+        "name": "禅思 H20",
+        "type": 42,
+        "subType": 0,
+        "gimbalindexList": [0,1,2]
+    },
+    {
+        "id": "h20t",
+        "name": "禅思 H20T",
+        "type": 43,
+        "subType": 0,
+        "gimbalindexList": [0,1,2]
+    },
+    {
+        "id": "h20n",
+        "name": "禅思 H20N",
+        "type": 61,
+        "subType": 0,
+        "gimbalindexList": [0,1,2]
+    },
+    {
+        "id": "h30",
+        "name": "禅思 H30",
+        "type": 82,
+        "subType": 0,
+        "gimbalindexList": [0,1,2]
+    },
+    {
+        "id": "h30t",
+        "name": "禅思 H30T",
+        "type": 83,
+        "subType": 0,
+        "gimbalindexList": [0,1,2]
+    },
+    {
+        "id": "m30_camera",
+        "name": "Matrice 30 Camera",
+        "type": 52,
+        "subType": 0,
+        "gimbalindexList": [0]
+    },
+    {
+        "id": "m30t_camera",
+        "name": "Matrice 30T Camera",
+        "type": 53,
+        "subType": 0,
+        "gimbalindexList": [0]
+    },
+    {
+        "id": "m4e_camera",
+        "name": "DJI Matrice 4E Camera",
+        "type": 88,
+        "subType": 0,
+        "gimbalindexList": [0]
+    },
+    {
+        "id": "m4t_camera",
+        "name": "DJI Matrice 4T Camera",
+        "type": 89,
+        "subType": 0,
+        "gimbalindexList": [0]
+    },
+    {
+        "id": "m3e_camera",
+        "name": "Mavic 3E Camera",
+        "type": 66,
+        "subType": 0,
+        "gimbalindexList": [0]
+    },
+    {
+        "id": "m3t_camera",
+        "name": "Mavic 3T Camera",
+        "type": 67,
+        "subType": 0,
+        "gimbalindexList": [0]
+    },
+    {
+        "id": "m3d_camera", 
+        "name": "Matrice 3D Camera",
+        "type": 80,
+        "subType": 0,
+        "gimbalindexList": [0]
+    },
+    {
+        "id": "m3td_camera",
+        "name": "Matrice 3TD Camera",
+        "type": 81,
+        "subType": 0,
+        "gimbalindexList": [0]
+    },
+    {
+        "id": "m4d_camera",
+        "name": "Matrice 4D Camera",
+        "type": 98,
+        "subType": 0,
+        "gimbalindexList": [0]
+    },
+    {
+        "id": "m4td_camera",
+        "name": "Matrice 4TD Camera",
+        "type": 99,
+        "subType": 0,
+        "gimbalindexList": [0]
+    }
+]

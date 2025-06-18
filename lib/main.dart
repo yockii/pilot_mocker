@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:pilot_mocker/model/aircraft.dart';
 import 'package:pilot_mocker/model/api.dart';
 import 'package:pilot_mocker/model/thing.dart';
 import 'package:pilot_mocker/model/third_cloud.dart';
@@ -41,6 +42,9 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider<AircraftModel>(
+          create: (_) => AircraftModel(),
+        ),
         ChangeNotifierProvider<ThingModel>(
           create: (_) => ThingModel(),
         ),
