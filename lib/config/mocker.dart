@@ -1,0 +1,1 @@
+var gatewaySerialNumber = 'GSN1234567890';

@@ -1,56 +1,30 @@
 import 'dart:async';
-import 'dart:io';
+import 'shared_client_isolate.dart';
 
-/// Singleton WebSocket client that manages host, token, and adds x-auth-token on connect.
+/// Singleton WebSocket client delegating to a background isolate for thread safety
 class WebSocketClient {
   WebSocketClient._internal();
   static final WebSocketClient _instance = WebSocketClient._internal();
   factory WebSocketClient() => _instance;
 
-  String _host = '';
-  String _token = '';
-  WebSocket? _socket;
-
   /// Set the WebSocket host URL (e.g., "ws://example.com/socket").
-  void setHost(String host) {
-    _host = host;
-  }
+  Future<void> setHost(String host) => SharedClientIsolate().wsSetHost(host);
 
   /// Set the auth token to be sent as x-auth-token query parameter.
-  void setToken(String token) {
-    _token = token;
-  }
+  Future<void> setToken(String token) => SharedClientIsolate().wsSetToken(token);
 
-  bool get isConnected => _socket != null && _socket!.readyState == WebSocket.open;
+  Future<bool> isConnected() => SharedClientIsolate().wsIsConnected();
 
   /// Connects to the WebSocket server, appending x-auth-token in query.
   /// Returns an open WebSocket.
-  Future<WebSocket> connect() async {
-    if (_socket != null && _socket!.readyState == WebSocket.open) {
-      return _socket!;
-    }
-    final uri = Uri.parse(_host);
-    final authUri = uri.replace(
-      queryParameters: {
-        ...uri.queryParameters,
-        'x-auth-token': _token,
-      },
-    );
-    _socket = await WebSocket.connect(authUri.toString());
-    return _socket!;
-  }
+  Future<void> connect() => SharedClientIsolate().wsConnect();
 
   /// Sends a message over the WebSocket.
-  void send(dynamic message) {
-    _socket?.add(message);
-  }
+  Future<void> send(dynamic message) => SharedClientIsolate().wsSend(message);
 
   /// Disconnects from the WebSocket server.
-  Future<void> disconnect() async {
-    await _socket?.close();
-    _socket = null;
-  }
+  Future<void> disconnect() => SharedClientIsolate().wsDisconnect();
 
   /// Stream of received messages.
-  Stream<dynamic>? get messages => _socket;
+  Future<Stream<dynamic>> messages() => SharedClientIsolate().wsMessages();
 }

@@ -362,13 +362,13 @@ class _WebViewPageState extends State<WebViewPage> {
                   );
                   controller.addJavaScriptHandler(
                     handlerName: 'wsSend',
-                    callback: (data) {
+                    callback: (data) async {
                       // 发送 WebSocket 消息
                       if (data.isNotEmpty) {
                         final message = data[0];
                         final wsClient = WebSocketClient();
-                        if (wsClient.isConnected) {
-                          wsClient.send(message);
+                        if (await wsClient.isConnected()) {
+                          await wsClient.send(message);
                         }
                       }
                     },
@@ -424,7 +424,7 @@ class _WebViewPageState extends State<WebViewPage> {
   Future<void> wsConnect(String host, String token, String callback) async {
     final ws = Provider.of<WsModel>(context, listen: false);
     final wsClient = WebSocketClient();
-    if (wsClient.isConnected) {
+    if (await wsClient.isConnected()) {
       await wsClient.disconnect();
     }
     wsClient.setHost(host);
