@@ -1,0 +1,15 @@
+{
+  "osd": {
+    "bid": {"_rule": {"type": "uuid"}},
+    "tid": {"_rule": {"type": "uuid"}},
+    "timestamp": {"_rule": {"type": "timestamp"}},
+    "gateway_sn": {"_rule": {"type": "string", "value": ""}},
+    "data": [
+      {
+        "sn": {"_rule": {"type": "string", "value": ""}},
+        "flighttime": {"_rule": {"type": "linear", "initial": 0, "unit": "s"}},
+        "total_flighttime": {"_rule": {"type": "linear", "initial": 0, "unit": "s"}}
+      }
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "gateway": {
+    "bid": {"_rule": {"type": "uuid"}},
+    "tid": {"_rule": {"type": "uuid"}},
+    "timestamp": {"_rule": {"type": "timestamp"}},
+    "gateway_sn": {"_rule": {"type": "string", "value": ""}},
+    "data": {
+      "wireless_link": {
+        "4g_freq_band": {"_rule": {"type": "double", "min": 2.4, "max": 2.5}},
+        "4g_gnd_quality": {"_rule": {"type": "int", "min": 0, "max": 5}},
+        "4g_link_state": {"_rule": {"type": "int", "min": 0, "max": 1}},
+        "wifi_quality": {"_rule": {"type": "int", "min": 0, "max": 100}},
+        "wifi_signal_strength": {"_rule": {"type": "int", "min": -100, "max": 0}}
+      }
+    }
+  }
+}
